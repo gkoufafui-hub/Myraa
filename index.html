@@ -25,6 +25,8 @@
       text-align: center;
       animation: fadeIn 1.5s ease;
       padding: 20px;
+      width: 100%;
+      max-width: 500px;
     }
 
     .myraa-video-wrapper {
@@ -38,6 +40,7 @@
         0 0 60px rgba(180, 100, 255, 0.4),
         0 0 120px rgba(180, 100, 255, 0.2);
       animation: pulse 3s ease-in-out infinite;
+      background: #1a0a2e;
     }
 
     .myraa-video {
@@ -86,16 +89,49 @@
   <div class="myraa-container">
     <div class="myraa-video-wrapper">
       <video 
+        id="myraaVideo"
         class="myraa-video" 
         src="myraa.mp4" 
         autoplay 
         loop 
         muted 
-        playsinline>
+        playsinline
+        controls
+        preload="auto">
+        Your browser does not support video.
       </video>
     </div>
     <h1 class="myraa-name">Myraa</h1>
     <p class="myraa-tagline">Personal AI Companion</p>
   </div>
+
+  <script>
+    const video = document.getElementById('myraaVideo');
+
+    // Try to autoplay on page load
+    window.addEventListener('load', () => {
+      video.play().catch((err) => {
+        console.log('Autoplay blocked:', err);
+      });
+    });
+
+    // If user taps anywhere, force play
+    document.body.addEventListener('click', () => {
+      if (video.paused) {
+        video.play().catch((err) => console.log(err));
+      }
+    }, { once: true });
+
+    // Log any video errors
+    video.addEventListener('error', (e) => {
+      console.error('Video error:', video.error);
+      alert('Video load nahi hui. Error code: ' + (video.error ? video.error.code : 'unknown'));
+    });
+
+    // Log when video successfully loads
+    video.addEventListener('loadeddata', () => {
+      console.log('Video loaded successfully!');
+    });
+  </script>
 </body>
 </html>
