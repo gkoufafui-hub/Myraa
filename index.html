@@ -6,132 +6,54 @@
   <title>Myraa - Personal AI Companion</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      background: #0a0a0f;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background-image: 
-        radial-gradient(circle at 20% 30%, rgba(160, 60, 255, 0.15), transparent 50%),
-        radial-gradient(circle at 80% 70%, rgba(100, 100, 255, 0.1), transparent 50%);
+      background: #0a0a0f; color: #fff; font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; background-image: radial-gradient(circle at 20% 30%, rgba(160, 60, 255, 0.15), transparent 50%), radial-gradient(circle at 80% 70%, rgba(100, 100, 255, 0.1), transparent 50%);
     }
-
-    .myraa-container {
-      text-align: center;
-      animation: fadeIn 1.5s ease;
-      padding: 20px;
-      width: 100%;
-      max-width: 500px;
-    }
-
+    .myraa-container { text-align: center; padding: 20px; width: 100%; max-width: 500px; animation: fadeIn 1.5s ease; }
     .myraa-video-wrapper {
-      position: relative;
-      width: min(80vw, 320px);
-      margin: 0 auto;
-      border-radius: 20px;
-      overflow: hidden;
-      border: 2px solid rgba(180, 100, 255, 0.5);
-      box-shadow: 
-        0 0 60px rgba(180, 100, 255, 0.4),
-        0 0 120px rgba(180, 100, 255, 0.2);
-      animation: pulse 3s ease-in-out infinite;
-      background: #1a0a2e;
+      position: relative; width: min(80vw, 320px); margin: 0 auto;
+      border-radius: 20px; overflow: hidden; border: 2px solid rgba(180, 100, 255, 0.5);
+      box-shadow: 0 0 60px rgba(180, 100, 255, 0.4), 0 0 120px rgba(180, 100, 255, 0.2);
+      animation: pulse 3s ease-in-out infinite; background: #1a0a2e; aspect-ratio: 9 / 16;
     }
-
-    .myraa-video {
-      width: 100%;
-      display: block;
-      border-radius: 18px;
-    }
-
-    .myraa-name {
-      font-size: 3rem;
-      margin-top: 2rem;
-      background: linear-gradient(135deg, #d89aff, #a060ff, #6b8aff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: 0.2rem;
-      font-weight: 300;
-    }
-
-    .myraa-tagline {
-      font-size: 0.9rem;
-      color: rgba(200, 160, 255, 0.6);
-      margin-top: 0.5rem;
-      letter-spacing: 0.3rem;
-      text-transform: uppercase;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulse {
-      0%, 100% { 
-        box-shadow: 0 0 60px rgba(180, 100, 255, 0.4), 
-                    0 0 120px rgba(180, 100, 255, 0.2); 
-      }
-      50% { 
-        box-shadow: 0 0 80px rgba(180, 100, 255, 0.7), 
-                    0 0 160px rgba(180, 100, 255, 0.35); 
-      }
-    }
+    .myraa-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s ease; }
+    .myraa-video.active { opacity: 1; }
+    .myraa-name { font-size: 3rem; margin-top: 2rem; background: linear-gradient(135deg, #d89aff, #a060ff, #6b8aff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 0.2rem; font-weight: 300; }
+    .myraa-tagline { font-size: 0.9rem; color: rgba(200, 160, 255, 0.6); margin-top: 0.5rem; letter-spacing: 0.3rem; text-transform: uppercase; }
+    .myraa-controls { margin-top: 2rem; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .myraa-btn { background: rgba(160, 60, 255, 0.2); border: 1px solid rgba(180, 100, 255, 0.5); color: #d89aff; padding: 10px 18px; border-radius: 25px; font-size: 0.85rem; cursor: pointer; transition: all 0.3s ease; font-family: inherit; }
+    .myraa-btn:active { background: rgba(160, 60, 255, 0.5); transform: scale(0.95); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse { 0%, 100% { box-shadow: 0 0 60px rgba(180, 100, 255, 0.4), 0 0 120px rgba(180, 100, 255, 0.2); } 50% { box-shadow: 0 0 80px rgba(180, 100, 255, 0.7), 0 0 160px rgba(180, 100, 255, 0.35); } }
   </style>
 </head>
 <body>
   <div class="myraa-container">
     <div class="myraa-video-wrapper">
-      <video 
-        id="myraaVideo"
-        class="myraa-video" 
-        src="myraa.mp4" 
-        autoplay 
-        loop 
-        muted 
-        playsinline
-        controls
-        preload="auto">
-        Your browser does not support video.
-      </video>
+      <video id="idleVideo" class="myraa-video active" src="Anime_girl_sitting_peacefully_20260923183801.mp4" autoplay loop muted playsinline preload="auto"></video>
+      <video id="thinkingVideo" class="myraa-video" src="Anime_girl_thinking_with_particles_20260923183915.mp4" loop muted playsinline preload="auto"></video>
+      <video id="talkingVideo" class="myraa-video" src="Anime_girl_talking_to_camera_20260923184106.mp4" loop muted playsinline preload="auto"></video>
     </div>
     <h1 class="myraa-name">Myraa</h1>
     <p class="myraa-tagline">Personal AI Companion</p>
+    <div class="myraa-controls">
+      <button class="myraa-btn" onclick="setState('idle')">Idle</button>
+      <button class="myraa-btn" onclick="setState('thinking')">Thinking</button>
+      <button class="myraa-btn" onclick="setState('talking')">Talking</button>
+    </div>
   </div>
-
   <script>
-    const video = document.getElementById('myraaVideo');
-
-    // Try to autoplay on page load
-    window.addEventListener('load', () => {
-      video.play().catch((err) => {
-        console.log('Autoplay blocked:', err);
-      });
-    });
-
-    // If user taps anywhere, force play
-    document.body.addEventListener('click', () => {
-      if (video.paused) {
-        video.play().catch((err) => console.log(err));
-      }
-    }, { once: true });
-
-    // Log any video errors
-    video.addEventListener('error', (e) => {
-      console.error('Video error:', video.error);
-      alert('Video load nahi hui. Error code: ' + (video.error ? video.error.code : 'unknown'));
-    });
-
-    // Log when video successfully loads
-    video.addEventListener('loadeddata', () => {
-      console.log('Video loaded successfully!');
-    });
+    const videos = { idle: document.getElementById('idleVideo'), thinking: document.getElementById('thinkingVideo'), talking: document.getElementById('talkingVideo') };
+    function setState(state) {
+      Object.values(videos).forEach(v => { v.classList.remove('active'); v.pause(); v.currentTime = 0; });
+      const active = videos[state];
+      if (active) { active.classList.add('active'); active.play().catch(err => console.log('Play error:', err)); }
+    }
+    window.addEventListener('load', () => { videos.idle.play().catch(err => console.log('Autoplay blocked:', err)); });
+    document.body.addEventListener('click', () => { const current = document.querySelector('.myraa-video.active'); if (current && current.paused) { current.play().catch(err => console.log(err)); } }, { once: true });
+    Object.entries(videos).forEach(([name, v]) => { v.addEventListener('error', () => { console.error(name + ' video error code:', v.error ? v.error.code : 'unknown'); }); });
   </script>
 </body>
 </html>
