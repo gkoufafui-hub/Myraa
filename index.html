@@ -2,419 +2,320 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Myraa — Cyber AI Companion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Myraa</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
     background: #05030a;
     color: #fff;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: -apple-system, 'Segoe UI', sans-serif;
     min-height: 100vh;
     overflow: hidden;
-    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     background-image:
-      radial-gradient(circle at 20% 20%, rgba(160, 60, 255, 0.18), transparent 45%),
-      radial-gradient(circle at 80% 80%, rgba(80, 140, 255, 0.12), transparent 45%),
+      radial-gradient(circle at 50% 30%, rgba(160, 60, 255, 0.2), transparent 60%),
       linear-gradient(#05030a, #0a0518);
   }
 
-  /* Animated grid background (cyber) */
-  body::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(160, 60, 255, 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(160, 60, 255, 0.07) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 75%);
-    -webkit-mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 75%);
-  }
-
-  /* Floating particles */
-  .particles {
-    position: absolute; inset: 0;
-    pointer-events: none;
-    overflow: hidden;
-  }
-  .particles span {
-    position: absolute;
-    width: 2px; height: 2px;
-    background: rgba(190, 150, 255, 0.8);
-    border-radius: 50%;
-    bottom: -10px;
-    animation: floatUp linear infinite;
-    box-shadow: 0 0 8px rgba(190, 150, 255, 0.9);
-  }
-  @keyframes floatUp {
-    to { transform: translateY(-110vh); opacity: 0; }
-  }
-
-  /* Main container */
-  .myraa-app {
-    position: relative;
+  .app {
     width: 100%;
     max-width: 480px;
     height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    padding: 20px 16px 24px;
-    z-index: 2;
-    animation: fadeIn 1.2s ease;
+    justify-content: center;
+    padding: 20px;
+    gap: 22px;
   }
 
-  /* Top status bar */
-  .top-bar {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: rgba(20, 10, 40, 0.45);
-    border: 1px solid rgba(160, 100, 255, 0.25);
-    border-radius: 12px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
+  /* Top brand */
   .brand {
-    display: flex; align-items: center; gap: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.72rem;
+    letter-spacing: 0.35em;
+    color: #c8a8ff;
+    text-transform: uppercase;
+    font-weight: 600;
   }
-  .brand-dot {
+  .dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: #b580ff;
-    box-shadow: 0 0 10px #b580ff, 0 0 20px rgba(181, 128, 255, 0.5);
-    animation: blink 2s infinite;
+    box-shadow: 0 0 12px #b580ff;
+    animation: pulse 2s infinite;
   }
-  @keyframes blink { 50% { opacity: 0.3; } }
-  .brand-text {
-    font-size: 0.75rem;
-    letter-spacing: 0.25em;
-    color: #c8a8ff;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-  .status {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    color: #7fffbf;
-    text-transform: uppercase;
-  }
-  .status-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #7fffbf;
-    box-shadow: 0 0 8px #7fffbf;
-    animation: blink 1.5s infinite;
-  }
+  @keyframes pulse { 50% { opacity: 0.4; } }
 
   /* Character stage */
   .stage {
     position: relative;
-    width: min(78vw, 340px);
+    width: min(72vw, 300px);
     aspect-ratio: 9 / 16;
-    margin: 12px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-shrink: 0;
   }
 
-  /* Rotating rings around character */
+  /* Rotating rings */
   .ring {
     position: absolute;
+    inset: -18px;
     border-radius: 50%;
-    border: 1px solid rgba(160, 100, 255, 0.35);
+    border: 1px solid rgba(180, 120, 255, 0.3);
+    border-top-color: rgba(200, 140, 255, 0.9);
+    animation: spin 6s linear infinite;
     pointer-events: none;
   }
-  .ring-1 {
-    inset: -20px;
-    border-top-color: rgba(200, 140, 255, 0.9);
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-    border-left-color: transparent;
-    animation: spin 8s linear infinite;
-    box-shadow: 0 0 20px rgba(160, 100, 255, 0.4);
-  }
-  .ring-2 {
-    inset: -40px;
-    border-bottom-color: rgba(120, 160, 255, 0.7);
-    border-left-color: transparent;
+  .ring2 {
+    inset: -32px;
+    border: 1px dashed rgba(160, 100, 255, 0.25);
     border-top-color: transparent;
-    border-right-color: transparent;
     animation: spin 12s linear infinite reverse;
-  }
-  .ring-3 {
-    inset: -60px;
-    border-style: dashed;
-    border-color: rgba(160, 100, 255, 0.15);
-    animation: spin 20s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Video wrapper */
-  .video-frame {
+  /* Video frame */
+  .frame {
     position: relative;
-    width: 100%; height: 100%;
-    border-radius: 20px;
+    width: 100%;
+    height: 100%;
+    border-radius: 22px;
     overflow: hidden;
-    border: 1.5px solid rgba(180, 120, 255, 0.6);
+    border: 1.5px solid rgba(180, 120, 255, 0.55);
     box-shadow:
-      0 0 40px rgba(180, 100, 255, 0.5),
-      0 0 80px rgba(180, 100, 255, 0.25),
-      inset 0 0 30px rgba(160, 80, 255, 0.15);
-    animation: pulseGlow 4s ease-in-out infinite;
+      0 0 50px rgba(180, 100, 255, 0.45),
+      inset 0 0 20px rgba(160, 80, 255, 0.15);
     background: #0a0418;
+    animation: glow 4s ease-in-out infinite;
   }
-  @keyframes pulseGlow {
-    0%, 100% {
-      box-shadow:
-        0 0 40px rgba(180, 100, 255, 0.5),
-        0 0 80px rgba(180, 100, 255, 0.25),
-        inset 0 0 30px rgba(160, 80, 255, 0.15);
-    }
+  @keyframes glow {
     50% {
       box-shadow:
-        0 0 60px rgba(180, 100, 255, 0.8),
-        0 0 120px rgba(180, 100, 255, 0.4),
-        inset 0 0 40px rgba(160, 80, 255, 0.25);
+        0 0 70px rgba(180, 100, 255, 0.7),
+        inset 0 0 30px rgba(160, 80, 255, 0.25);
     }
   }
-
-  /* HUD corner brackets */
-  .hud-corner {
-    position: absolute;
-    width: 24px; height: 24px;
-    border: 2px solid rgba(200, 140, 255, 0.85);
-    pointer-events: none;
-    z-index: 5;
-  }
-  .hud-tl { top: 8px; left: 8px; border-right: none; border-bottom: none; border-top-left-radius: 6px; }
-  .hud-tr { top: 8px; right: 8px; border-left: none; border-bottom: none; border-top-right-radius: 6px; }
-  .hud-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; border-bottom-left-radius: 6px; }
-  .hud-br { bottom: 8px; right: 8px; border-left: none; border-top: none; border-bottom-right-radius: 6px; }
 
   .video {
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     opacity: 0;
-    transition: opacity 0.6s ease;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
   }
   .video.active { opacity: 1; }
 
-  /* Scanning line effect */
-  .scanline {
+  /* HUD corners */
+  .corner {
     position: absolute;
-    left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(200, 140, 255, 0.9), transparent);
-    box-shadow: 0 0 15px rgba(200, 140, 255, 0.8);
-    animation: scan 4s ease-in-out infinite;
+    width: 20px; height: 20px;
+    border: 2px solid rgba(200, 140, 255, 0.9);
+    z-index: 5;
     pointer-events: none;
-    z-index: 4;
   }
-  @keyframes scan {
-    0% { top: 0%; opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { top: 100%; opacity: 0; }
-  }
+  .tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; border-radius: 6px 0 0 0; }
+  .tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; border-radius: 0 6px 0 0; }
+  .bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; border-radius: 0 0 0 6px; }
+  .br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; border-radius: 0 0 6px 0; }
 
   /* Name badge */
-  .name-badge {
+  .badge {
     position: absolute;
-    bottom: -12px;
+    bottom: -14px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(20, 8, 40, 0.9);
+    background: rgba(20, 8, 40, 0.95);
     border: 1px solid rgba(180, 120, 255, 0.6);
-    padding: 6px 18px;
+    padding: 5px 16px;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     letter-spacing: 0.3em;
     color: #d8b8ff;
     text-transform: uppercase;
+    font-weight: 600;
     white-space: nowrap;
     box-shadow: 0 0 20px rgba(180, 100, 255, 0.5);
     z-index: 6;
   }
 
-  /* Bottom control panel */
-  .control-panel {
+  /* Control panel */
+  .controls {
     width: 100%;
-    background: rgba(20, 10, 40, 0.55);
+    max-width: 340px;
+    background: rgba(20, 10, 40, 0.6);
     border: 1px solid rgba(160, 100, 255, 0.3);
-    border-radius: 18px;
-    padding: 14px;
+    border-radius: 16px;
+    padding: 12px;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
-    box-shadow: 0 0 30px rgba(120, 60, 200, 0.25);
-  }
-
-  .panel-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.25em;
-    color: rgba(200, 160, 255, 0.7);
-    text-transform: uppercase;
-    text-align: center;
-    margin-bottom: 10px;
-  }
-
-  .state-buttons {
     display: flex;
     gap: 8px;
-    justify-content: center;
+    flex-shrink: 0;
   }
 
-  .state-btn {
+  .btn {
     flex: 1;
     background: rgba(120, 60, 200, 0.15);
-    border: 1px solid rgba(180, 120, 255, 0.4);
+    border: 1px solid rgba(180, 120, 255, 0.35);
     color: #c8a8ff;
-    padding: 10px 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    font-weight: 600;
+    padding: 12px 6px;
+    border-radius: 10px;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
     font-family: inherit;
   }
-  .state-btn:active,
-  .state-btn.active {
-    background: rgba(180, 100, 255, 0.35);
+  .btn.active {
+    background: rgba(180, 100, 255, 0.4);
     border-color: rgba(200, 140, 255, 0.9);
     color: #fff;
-    box-shadow: 0 0 20px rgba(180, 100, 255, 0.6);
-    transform: scale(0.97);
+    box-shadow: 0 0 18px rgba(180, 100, 255, 0.55);
   }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .btn:active { transform: scale(0.95); }
 </style>
 </head>
 <body>
 
-<div class="particles" id="particles"></div>
-
-<div class="myraa-app">
-
-  <!-- Top bar -->
-  <div class="top-bar">
-    <div class="brand">
-      <div class="brand-dot"></div>
-      <div class="brand-text">Myraa System</div>
-    </div>
-    <div class="status">
-      <div class="status-dot"></div>
-      <span id="statusText">Online</span>
-    </div>
+<div class="app">
+  <div class="brand">
+    <div class="dot"></div>
+    <span>Myraa System</span>
   </div>
 
-  <!-- Character stage -->
   <div class="stage">
-    <div class="ring ring-1"></div>
-    <div class="ring ring-2"></div>
-    <div class="ring ring-3"></div>
+    <div class="ring"></div>
+    <div class="ring ring2"></div>
+    <div class="frame">
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
 
-    <div class="video-frame">
-      <div class="hud-corner hud-tl"></div>
-      <div class="hud-corner hud-tr"></div>
-      <div class="hud-corner hud-bl"></div>
-      <div class="hud-corner hud-br"></div>
-      <div class="scanline"></div>
-
-      <video id="idleVideo" class="video active"
+      <video id="v-idle" class="video active"
         src="Anime_girl_sitting_peacefully_20260923183801.mp4"
         autoplay loop muted playsinline preload="auto"></video>
-      <video id="thinkingVideo" class="video"
+
+      <video id="v-thinking" class="video"
         src="Anime_girl_thinking_with_particles_20260923183915.mp4"
-        loop muted playsinline preload="auto"></video>
-      <video id="talkingVideo" class="video"
+        loop muted playsinline preload="metadata"></video>
+
+      <video id="v-talking" class="video"
         src="Anime_girl_talking_to_camera_20260923184106.mp4"
-        loop muted playsinline preload="auto"></video>
+        loop muted playsinline preload="metadata"></video>
 
-      <div class="name-badge" id="nameBadge">Idle</div>
+      <div class="badge" id="badge">Idle</div>
     </div>
   </div>
 
-  <!-- Bottom panel -->
-  <div class="control-panel">
-    <div class="panel-label">State Control</div>
-    <div class="state-buttons">
-      <button class="state-btn active" data-state="idle" onclick="setState('idle')">Idle</button>
-      <button class="state-btn" data-state="thinking" onclick="setState('thinking')">Think</button>
-      <button class="state-btn" data-state="talking" onclick="setState('talking')">Talk</button>
-    </div>
+  <div class="controls">
+    <button class="btn active" data-state="idle">Idle</button>
+    <button class="btn" data-state="thinking">Think</button>
+    <button class="btn" data-state="talking">Talk</button>
   </div>
-
 </div>
 
 <script>
   const videos = {
-    idle: document.getElementById('idleVideo'),
-    thinking: document.getElementById('thinkingVideo'),
-    talking: document.getElementById('talkingVideo')
+    idle: document.getElementById('v-idle'),
+    thinking: document.getElementById('v-thinking'),
+    talking: document.getElementById('v-talking')
   };
-  const statusText = document.getElementById('statusText');
-  const nameBadge = document.getElementById('nameBadge');
-  const buttons = document.querySelectorAll('.state-btn');
+  const badge = document.getElementById('badge');
+  const buttons = document.querySelectorAll('.btn');
+
+  let current = 'idle';
+  let primed = false;
+
+  // PRIME all videos on first user tap so mobile allows future autoplay
+  function primeAllVideos() {
+    if (primed) return;
+    primed = true;
+    Object.entries(videos).forEach(([name, v]) => {
+      if (name === 'idle') return; // idle already playing
+      const p = v.play();
+      if (p && p.then) {
+        p.then(() => {
+          // Played successfully - pause immediately to reset
+          setTimeout(() => {
+            v.pause();
+            v.currentTime = 0;
+          }, 50);
+        }).catch(() => {});
+      }
+    });
+  }
 
   function setState(state) {
-    Object.values(videos).forEach(v => {
-      v.classList.remove('active');
-      v.pause();
-      v.currentTime = 0;
+    if (state === current && videos[state].classList.contains('active')) return;
+    current = state;
+
+    // Hide & pause all others
+    Object.entries(videos).forEach(([name, v]) => {
+      if (name !== state) {
+        v.classList.remove('active');
+        v.pause();
+      }
     });
 
     const active = videos[state];
-    if (active) {
-      active.classList.add('active');
-      active.play().catch(err => console.log('Play error:', err));
+
+    // Ensure loaded
+    if (active.readyState === 0) active.load();
+
+    active.currentTime = 0;
+    active.classList.add('active');
+
+    const playPromise = active.play();
+    if (playPromise && playPromise.catch) {
+      playPromise.catch(err => {
+        console.log('play retry:', err);
+        // Retry after a tick
+        setTimeout(() => active.play().catch(() => {}), 100);
+      });
     }
 
+    badge.textContent = state.charAt(0).toUpperCase() + state.slice(1);
     buttons.forEach(b => b.classList.toggle('active', b.dataset.state === state));
-
-    const labels = { idle: 'Online', thinking: 'Processing', talking: 'Speaking' };
-    statusText.textContent = labels[state] || 'Online';
-    nameBadge.textContent = state.charAt(0).toUpperCase() + state.slice(1);
   }
 
-  window.addEventListener('load', () => {
-    videos.idle.play().catch(err => console.log('Autoplay blocked:', err));
+  // Buttons
+  buttons.forEach(b => {
+    b.addEventListener('click', (e) => {
+      e.preventDefault();
+      primeAllVideos();          // prime on first tap
+      setState(b.dataset.state);
+    });
+    // Also handle touchstart for faster response
+    b.addEventListener('touchstart', () => {
+      primeAllVideos();
+    }, { passive: true, once: false });
   });
 
-  document.body.addEventListener('click', () => {
-    const current = document.querySelector('.video.active');
-    if (current && current.paused) current.play().catch(err => console.log(err));
+  // Global first-tap prime (for autoplay on iOS/Android)
+  document.body.addEventListener('touchstart', () => {
+    primeAllVideos();
+    // Make sure idle is playing
+    if (videos.idle.paused) videos.idle.play().catch(() => {});
   }, { once: true });
 
-  // Generate particles
-  const particleBox = document.getElementById('particles');
-  for (let i = 0; i < 30; i++) {
-    const s = document.createElement('span');
-    s.style.left = Math.random() * 100 + '%';
-    s.style.animationDuration = (6 + Math.random() * 8) + 's';
-    s.style.animationDelay = (-Math.random() * 12) + 's';
-    s.style.opacity = 0.3 + Math.random() * 0.6;
-    particleBox.appendChild(s);
-  }
+  document.body.addEventListener('click', () => {
+    primeAllVideos();
+    if (videos.idle.paused) videos.idle.play().catch(() => {});
+  }, { once: true });
 
-  // Error logging
-  Object.entries(videos).forEach(([name, v]) => {
-    v.addEventListener('error', () => {
-      console.error(name + ' video error:', v.error ? v.error.code : 'unknown');
-    });
+  // Try autoplay idle on load
+  window.addEventListener('load', () => {
+    videos.idle.play().catch(() => {});
   });
 </script>
 
