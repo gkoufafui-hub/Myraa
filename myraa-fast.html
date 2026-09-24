@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Myraa Fast</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  :root { --accent: #b580ff; --accent-dark: #7a3fd6; --glow: rgba(180, 100, 255, 0.5); --green: #4dffb0; --emotion: #b580ff; --emotion-glow: rgba(180, 100, 255, 0.6); }
+  body { background: #05030a; color: #fff; font-family: -apple-system, 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; background-image: radial-gradient(circle at 50% 30%, var(--emotion-glow), transparent 60%); transition: background-image 0.6s ease; }
+  .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; background: rgba(5, 3, 10, 0.95); border-bottom: 2px solid var(--accent); z-index: 100; }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; letter-spacing: 0.3em; color: var(--accent); text-transform: uppercase; font-weight: 700; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 50% { opacity: 0.4; } }
+  #menuBtn { width: 42px; height: 42px; border-radius: 12px; background: var(--accent); border: none; display: flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; box-shadow: 0 0 15px var(--accent); }
+  #menuBtn span { width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+  #menuPanel { position: fixed; top: 0; right: -290px; width: 270px; height: 100vh; background: #0f081e; border-left: 2px solid var(--accent); z-index: 2000; transition: right 0.3s ease; padding: 80px 20px 20px; display: flex; flex-direction: column; gap: 8px; box-shadow: -15px 0 50px rgba(0,0,0,0.8); overflow-y: auto; }
+  #menuPanel.open { right: 0; }
+  .menu-title { font-size: 0.7rem; letter-spacing: 0.4em; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; font-weight: 700; }
+  .menu-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: rgba(120, 60, 200, 0.2); border: 1px solid var(--accent); color: #fff; font-size: 0.88rem; cursor: pointer; font-family: inherit; text-align: left; width: 100%; font-weight: 600; }
+  .menu-item:active { background: var(--accent-dark); }
+  .menu-icon { font-size: 1.15rem; }
+  #menuOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1500; }
+  #menuOverlay.open { opacity: 1; pointer-events: auto; }
+  .modal { position: fixed; top: 75px; left: 50%; transform: translateX(-50%) translateY(-30px); width: 90%; max-width: 370px; background: #0f081e; border: 2px solid var(--accent); border-radius: 18px; padding: 20px; z-index: 2500; opacity: 0; pointer-events: none; transition: all 0.3s; box-shadow: 0 15px 50px var(--glow); max-height: 80vh; overflow-y: auto; }
+  .modal.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .modal-title { font-size: 0.8rem; letter-spacing: 0.3em; color: var(--accent); text-transform: uppercase; font-weight: 700; }
+  .modal-close { background: transparent; border: none; color: var(--accent); font-size: 1.3rem; cursor: pointer; }
+  .setting-label { font-size: 0.85rem; color: #d8b8ff; display: block; margin-bottom: 6px; }
+  .setting-input { background: rgba(120, 60, 200, 0.15); border: 1px solid var(--accent); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 0.85rem; font-family: inherit; width: 100%; outline: none; margin-bottom: 14px; }
+  .save-btn { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.15em; cursor: pointer; font-family: inherit; }
+  .voice-select { background: rgba(120, 60, 200, 0.15); border: 1px solid var(--accent); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 0.85rem; font-family: inherit; width: 100%; outline: none; margin-bottom: 14px; }
+  .app { padding: 80px 20px 180px; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+  .stage { position: relative; width: min(72vw, 290px); aspect-ratio: 9 / 16; }
+  .frame { position: relative; width: 100%; height: 100%; border-radius: 20px; overflow: hidden; border: 2px solid var(--emotion); box-shadow: 0 0 60px var(--emotion-glow); background: #0a0418; transition: box-shadow 0.4s ease, border-color 0.4s ease; }
+  .frame.listening { border-color: var(--green); box-shadow: 0 0 80px var(--green), 0 0 120px rgba(80,255,180,0.4); }
+  .frame.speaking { box-shadow: 0 0 80px var(--emotion), 0 0 120px var(--emotion-glow); }
+  .video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.2s; }
+  .video.active { opacity: 1; }
+  .corner { position: absolute; width: 22px; height: 22px; border: 2px solid var(--emotion); z-index: 5; pointer-events: none; transition: border-color 0.4s; }
+  .tl { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+  .tr { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
+  .bl { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
+  .br { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+  .badge { position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%); background: rgba(20, 8, 40, 0.98); border: 1px solid var(--emotion); padding: 6px 18px; border-radius: 20px; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--emotion); text-transform: uppercase; font-weight: 700; z-index: 6; transition: border-color 0.4s, color 0.4s; }
+  #emotionBadge { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) scale(0); background: rgba(15, 8, 30, 0.95); border: 2px solid var(--emotion); border-radius: 50px; padding: 6px 18px; font-size: 1.3rem; z-index: 900; box-shadow: 0 0 30px var(--emotion-glow); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; gap: 8px; opacity: 0; }
+  #emotionBadge.show { transform: translateX(-50%) scale(1); opacity: 1; }
+  #emotionBadge .label { font-size: 0.68rem; letter-spacing: 0.2em; color: var(--emotion); text-transform: uppercase; font-weight: 700; }
+  #statusBox { position: fixed; bottom: 125px; left: 20px; right: 20px; max-width: 400px; margin: 0 auto; background: rgba(15, 8, 30, 0.95); border: 1px solid var(--accent); border-radius: 18px; padding: 12px 16px; font-size: 0.82rem; line-height: 1.4; min-height: 55px; max-height: 120px; overflow-y: auto; z-index: 700; text-align: center; backdrop-filter: blur(12px); }
+  #statusBox .title { font-size: 0.62rem; letter-spacing: 0.25em; color: var(--accent); text-transform: uppercase; margin-bottom: 4px; display: block; }
+  #statusBox .text { color: #fff; }
+  #micBtn { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 90px; height: 90px; border-radius: 50%; background: var(--accent); border: 3px solid rgba(255,255,255,0.25); box-shadow: 0 0 40px var(--glow); cursor: pointer; z-index: 800; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; color: #fff; transition: all 0.2s ease; animation: micPulse 2.5s ease-in-out infinite; }
+  #micBtn:active { transform: translateX(-50%) scale(0.92); }
+  #micBtn.listening { background: var(--green); box-shadow: 0 0 60px var(--green), 0 0 100px rgba(80,255,180,0.5); animation: listeningPulse 1s ease-in-out infinite; }
+  #micBtn.speaking { background: var(--accent-dark); opacity: 0.7; animation: none; }
+  @keyframes micPulse { 0%, 100% { box-shadow: 0 0 30px var(--glow); } 50% { box-shadow: 0 0 60px var(--accent); } }
+  @keyframes listeningPulse { 0%, 100% { box-shadow: 0 0 40px var(--green); } 50% { box-shadow: 0 0 80px var(--green), 0 0 120px rgba(80,255,180,0.6); } }
+  #statusHint { position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: rgba(200, 160, 255, 0.7); letter-spacing: 0.2em; text-transform: uppercase; text-align: center; z-index: 750; transition: all 0.2s; white-space: nowrap; }
+  #statusHint.listening { color: var(--green); }
+  #speedBadge { position: fixed; top: 66px; left: 20px; background: rgba(80, 255, 180, 0.15); border: 1px solid var(--green); border-radius: 12px; padding: 3px 10px; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--green); text-transform: uppercase; font-weight: 700; z-index: 100; opacity: 0; transition: opacity 0.3s; }
+  #speedBadge.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="brand"><div class="dot"></div><span>Myraa Fast</span></div>
+  <button id="menuBtn"><span></span><span></span><span></span></button>
+</div>
+<div id="speedBadge">⚡ Cached</div>
+
+<div id="menuOverlay"></div>
+<div id="menuPanel">
+  <div class="menu-title">Menu</div>
+  <button class="menu-item" id="mApi"><span class="menu-icon">🔑</span><span>API Key</span></button>
+  <button class="menu-item" id="mVoice"><span class="menu-icon">🎙️</span><span>Voice Select</span></button>
+  <button class="menu-item" id="mCache"><span class="menu-icon">⚡</span><span>Cache Info</span></button>
+  <button class="menu-item" id="mClear"><span class="menu-icon">🗑️</span><span>Reset</span></button>
+  <button class="menu-item" id="mAbout"><span class="menu-icon">ℹ️</span><span>About</span></button>
+</div>
+
+<div class="modal" id="apiModal">
+  <div class="modal-header">
+    <div class="modal-title">API Key</div>
+    <button class="modal-close" data-close>✕</button>
+  </div>
+  <label class="setting-label">Gemini API Key</label>
+  <input class="setting-input" id="apiInput" type="password" placeholder="Paste your key">
+  <button class="save-btn" id="saveApi">SAVE</button>
+</div>
+
+<div class="modal" id="voiceModal">
+  <div class="modal-header">
+    <div class="modal-title">Voice Select</div>
+    <button class="modal-close" data-close>✕</button>
+  </div>
+  <label class="setting-label">Gemini TTS Voice</label>
+  <select class="voice-select" id="voiceSelect">
+    <option value="Kore">Kore — Firm (Best)</option>
+    <option value="Aoede">Aoede — Breezy</option>
+    <option value="Leda">Leda — Youthful</option>
+    <option value="Sulafat">Sulafat — Warm</option>
+    <option value="Vindemiatrix">Vindemiatrix — Gentle</option>
+  </select>
+  <button class="save-btn" id="saveVoice">SAVE VOICE</button>
+</div>
+
+<div class="modal" id="cacheModal">
+  <div class="modal-header">
+    <div class="modal-title">Cache Info</div>
+    <button class="modal-close" data-close>✕</button>
+  </div>
+  <div style="font-size:0.85rem;color:#d8b8ff;line-height:1.6;">
+    <p style="margin-bottom:10px;">⚡ <strong>Fast Reply System:</strong></p>
+    <p style="margin-bottom:6px;">• Silence detect: <strong>1.2 sec</strong> (fast)</p>
+    <p style="margin-bottom:6px;">• Reply length: <strong>1 line only</strong></p>
+    <p style="margin-bottom:6px;">• History: <strong>last 6 messages</strong></p>
+    <p style="margin-bottom:10px;">• TTS cache: <strong><span id="cacheCount">0</span> phrases saved</strong></p>
+    <p style="color:#4dffb0;font-size:0.78rem;">Common phrases cached → instant reply</p>
+  </div>
+  <button class="save-btn" id="clearCache" style="background:#7a1d1d;margin-top:14px;">CLEAR CACHE</button>
+</div>
+
+<div class="modal" id="aboutModal">
+  <div class="modal-header">
+    <div class="modal-title">About</div>
+    <button class="modal-close" data-close>✕</button>
+  </div>
+  <div style="text-align:center;padding:14px 0;">
+    <div style="font-size:3rem;margin-bottom:10px;">💜</div>
+    <div style="font-size:1.3rem;color:var(--accent);font-weight:700;letter-spacing:0.2em;">MYRAA</div>
+    <div style="color:#c8a8ff;font-size:0.85rem;margin-top:4px;">Fast Mode</div>
+    <div style="color:#7a6fa0;font-size:0.75rem;margin-top:12px;">Version 8.0 — Optimized</div>
+  </div>
+</div>
+
+<div id="emotionBadge">
+  <span id="emotionEmoji">😊</span>
+  <span class="label" id="emotionLabel">happy</span>
+</div>
+
+<div class="app">
+  <div class="stage">
+    <div class="frame" id="frame">
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+      <video id="v-idle" class="video active" src="Anime_girl_sitting_peacefully_20260923183801.mp4" autoplay loop muted playsinline preload="auto"></video>
+      <video id="v-thinking" class="video" src="Anime_girl_thinking_with_particles_20260923183915.mp4" loop muted playsinline preload="metadata"></video>
+      <video id="v-talking" class="video" src="Anime_girl_talking_to_camera_20260923184106.mp4" loop muted playsinline preload="metadata"></video>
+      <div class="badge" id="badge">Idle</div>
+    </div>
+  </div>
+</div>
+
+<div id="statusBox">
+  <span class="title" id="statusTitle">Ready</span>
+  <div class="text" id="statusText">API Key save karo, phir 🎤 tap karo</div>
+</div>
+
+<div id="statusHint">Tap mic to start</div>
+
+<button id="micBtn">🎤</button>
+
+<script>
+  /* ============ CONFIG ============ */
+  const MODEL = 'gemini-3.6-flash';
+  const TTS_MODEL = 'gemini-3.6-flash-preview-tts';
+  const SILENCE_MS = 1200;       // Fast: 1.2s (was 2s)
+  const HISTORY_LIMIT = 6;       // Fast: 6 messages (was 10)
+  const TTS_CACHE_MAX = 30;
+
+  /* ============ EMOTION ============ */
+  const EMOTIONS = {
+    happy:     { emoji: '😊', color: '#4dffb0', glow: 'rgba(80, 255, 180, 0.6)' },
+    excited:   { emoji: '🤩', color: '#ffb84d', glow: 'rgba(255, 184, 77, 0.6)' },
+    love:      { emoji: '🥰', color: '#ff7eb3', glow: 'rgba(255, 126, 179, 0.6)' },
+    sad:       { emoji: '😢', color: '#5b9dff', glow: 'rgba(91, 157, 255, 0.6)' },
+    angry:     { emoji: '😠', color: '#ff5577', glow: 'rgba(255, 85, 119, 0.6)' },
+    surprised: { emoji: '😲', color: '#ffcc00', glow: 'rgba(255, 204, 0, 0.6)' },
+    thinking:  { emoji: '🤔', color: '#b580ff', glow: 'rgba(180, 100, 255, 0.6)' },
+    shy:       { emoji: '😳', color: '#ff9ec7', glow: 'rgba(255, 158, 199, 0.6)' },
+    sleepy:    { emoji: '😴', color: '#8b9dc3', glow: 'rgba(139, 157, 195, 0.6)' },
+    neutral:   { emoji: '😌', color: '#b580ff', glow: 'rgba(180, 100, 255, 0.6)' }
+  };
+  const root = document.documentElement;
+  const emotionBadge = document.getElementById('emotionBadge');
+  const emotionEmoji = document.getElementById('emotionEmoji');
+  const emotionLabel = document.getElementById('emotionLabel');
+  let currentEmotion = 'neutral';
+  function applyEmotion(emotion) {
+    const e = EMOTIONS[emotion] || EMOTIONS.neutral;
+    currentEmotion = emotion in EMOTIONS ? emotion : 'neutral';
+    root.style.setProperty('--emotion', e.color);
+    root.style.setProperty('--emotion-glow', e.glow);
+    emotionEmoji.textContent = e.emoji;
+    emotionLabel.textContent = currentEmotion;
+    emotionBadge.classList.add('show');
+    clearTimeout(window._emotionTimer);
+    window._emotionTimer = setTimeout(() => emotionBadge.classList.remove('show'), 4000);
+  }
+
+  /* ============ STATE ============ */
+  const videos = { idle: document.getElementById('v-idle'), thinking: document.getElementById('v-thinking'), talking: document.getElementById('v-talking') };
+  const badge = document.getElementById('badge');
+  const frame = document.getElementById('frame');
+  const statusTitle = document.getElementById('statusTitle');
+  const statusText = document.getElementById('statusText');
+  const statusHint = document.getElementById('statusHint');
+  const micBtn = document.getElementById('micBtn');
+  const speedBadge = document.getElementById('speedBadge');
+  let current = 'idle';
+  let primed = false;
+
+  function primeAll() {
+    if (primed) return; primed = true;
+    ['thinking','talking'].forEach(n => {
+      const v = videos[n]; const p = v.play();
+      if (p && p.then) p.then(() => setTimeout(() => { v.pause(); v.currentTime = 0; }, 50)).catch(()=>{});
+    });
+  }
+  function setState(state) {
+    if (state === current && videos[state].classList.contains('active')) return;
+    current = state;
+    Object.keys(videos).forEach(k => { if (k !== state) { videos[k].classList.remove('active'); videos[k].pause(); } });
+    const a = videos[state];
+    if (a.readyState === 0) a.load();
+    a.currentTime = 0; a.classList.add('active');
+    a.play().catch(()=>{});
+    badge.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+    frame.classList.remove('listening','speaking');
+    if (state === 'talking') frame.classList.add('speaking');
+  }
+  function setStatus(title, text, type) {
+    statusTitle.textContent = title;
+    statusText.textContent = text;
+    if (type === 'listening') { statusHint.classList.add('listening'); statusHint.textContent = '● Listening...'; }
+    else if (type === 'speaking') { statusHint.classList.remove('listening'); statusHint.textContent = '● Speaking...'; }
+    else { statusHint.classList.remove('listening'); statusHint.textContent = 'Tap mic to start'; }
+  }
+  function showSpeedBadge() {
+    speedBadge.classList.add('show');
+    clearTimeout(window._speedTimer);
+    window._speedTimer = setTimeout(() => speedBadge.classList.remove('show'), 800);
+  }
+  document.body.addEventListener('touchstart', () => { primeAll(); if (videos.idle.paused) videos.idle.play().catch(()=>{}); }, { once: true });
+  window.addEventListener('load', () => videos.idle.play().catch(()=>{}));
+
+  /* ============ MENU ============ */
+  const menuBtn = document.getElementById('menuBtn');
+  const menuPanel = document.getElementById('menuPanel');
+  const menuOverlay = document.getElementById('menuOverlay');
+  menuBtn.addEventListener('click', e => { e.stopPropagation(); menuPanel.classList.add('open'); menuOverlay.classList.add('open'); });
+  menuOverlay.addEventListener('click', () => { menuPanel.classList.remove('open'); menuOverlay.classList.remove('open'); });
+  function openModal(id) { menuPanel.classList.remove('open'); menuOverlay.classList.remove('open'); document.querySelectorAll('.modal').forEach(m => m.classList.remove('show')); document.getElementById(id).classList.add('show'); }
+  document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('.modal').classList.remove('show')));
+
+  /* ============ API KEY ============ */
+  const apiInput = document.getElementById('apiInput');
+  document.getElementById('mApi').addEventListener('click', () => { apiInput.value = localStorage.getItem('myraa_api') || ''; openModal('apiModal'); });
+  document.getElementById('saveApi').addEventListener('click', () => {
+    const k = apiInput.value.trim();
+    if (!k) { alert('Key khaali!'); return; }
+    localStorage.setItem('myraa_api', k);
+    alert('API Key saved!');
+    document.getElementById('apiModal').classList.remove('show');
+  });
+
+  /* ============ VOICE ============ */
+  const voiceSelect = document.getElementById('voiceSelect');
+  document.getElementById('mVoice').addEventListener('click', () => {
+    voiceSelect.value = localStorage.getItem('myraa_tts_voice') || 'Kore';
+    openModal('voiceModal');
+  });
+  document.getElementById('saveVoice').addEventListener('click', () => {
+    localStorage.setItem('myraa_tts_voice', voiceSelect.value);
+    alert('Voice: ' + voiceSelect.value);
+    document.getElementById('voiceModal').classList.remove('show');
+  });
+
+  /* ============ TTS CACHE ============ */
+  const ttsCache = new Map(); // key = emotion::text, value = blob URL
+
+  function cacheKey(text, emotion, voice) {
+    return `${emotion}::${voice}::${text}`;
+  }
+
+  function getCachedAudio(text, emotion) {
+    const voice = localStorage.getItem('myraa_tts_voice') || 'Kore';
+    return ttsCache.get(cacheKey(text, emotion, voice));
+  }
+
+  function setCachedAudio(text, emotion, url) {
+    const voice = localStorage.getItem('myraa_tts_voice') || 'Kore';
+    const key = cacheKey(text, emotion, voice);
+    if (ttsCache.size >= TTS_CACHE_MAX) {
+      const firstKey = ttsCache.keys().next().value;
+      const oldUrl = ttsCache.get(firstKey);
+      try { URL.revokeObjectURL(oldUrl); } catch(e){}
+      ttsCache.delete(firstKey);
+    }
+    ttsCache.set(key, url);
+  }
+
+  document.getElementById('mCache').addEventListener('click', () => {
+    document.getElementById('cacheCount').textContent = ttsCache.size;
+    openModal('cacheModal');
+  });
+  document.getElementById('clearCache').addEventListener('click', () => {
+    ttsCache.forEach(url => { try { URL.revokeObjectURL(url); } catch(e){} });
+    ttsCache.clear();
+    alert('Cache cleared!');
+    document.getElementById('cacheModal').classList.remove('show');
+  });
+
+  /* ============ MIC ============ */
+  let recognition = null;
+  let isListening = false;
+  let isSpeaking = false;
+  let isProcessing = false;
+  let silenceTimer = null;
+  let finalTranscript = '';
+  let history = JSON.parse(localStorage.getItem('myraa_history') || '[]');
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    recognition = new SR();
+    recognition.lang = 'hi-IN';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      isListening = true;
+      micBtn.classList.add('listening');
+      micBtn.classList.remove('speaking');
+      frame.classList.add('listening');
+      setState('idle');
+      setStatus('Listening', 'Bolo...', 'listening');
+    };
+    recognition.onresult = (event) => {
+      let interim = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalTranscript += t + ' ';
+        else interim += t;
+      }
+      const shown = (finalTranscript + interim).trim();
+      if (shown) setStatus('Listening', shown, 'listening');
+      if (silenceTimer) clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => { if (finalTranscript.trim()) stopListeningAndSend(); }, SILENCE_MS);
+    };
+    recognition.onerror = (e) => {
+      if (e.error === 'no-speech') return;
+      if (e.error === 'not-allowed') alert('Mic permission chahiye.');
+    };
+    recognition.onend = () => {
+      isListening = false;
+      micBtn.classList.remove('listening');
+      frame.classList.remove('listening');
+      if (!isProcessing && !isSpeaking) setStatus('Ready', 'Tap mic to talk');
+    };
+  }
+
+  function startListening() {
+    if (!recognition || isSpeaking || isProcessing) return;
+    primeAll();
+    finalTranscript = '';
+    setStatus('Listening', 'Bolo...', 'listening');
+    try { recognition.start(); } catch(e) {}
+  }
+  function stopListeningAndSend() {
+    if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
+    if (recognition && isListening) { try { recognition.stop(); } catch(e){} }
+    const userText = finalTranscript.trim();
+    if (!userText) { setStatus('Ready', 'Tap mic to talk'); return; }
+    sendToMyraa(userText);
+  }
+
+  micBtn.addEventListener('click', () => {
+    // INTERRUPT: if Myraa is speaking, cut her off and listen
+    if (isSpeaking) {
+      stopSpeaking();
+      setTimeout(() => startListening(), 150);
+      return;
+    }
+    if (isListening) stopListeningAndSend();
+    else startListening();
+  });
+
+  /* ============ SPEAK ============ */
+  let currentAudio = null;
+  let currentUtterance = null;
+
+  function stopSpeaking() {
+    if (currentAudio) { try { currentAudio.pause(); } catch(e){} currentAudio = null; }
+    if (currentUtterance && 'speechSynthesis' in window) { speechSynthesis.cancel(); currentUtterance = null; }
+    isSpeaking = false;
+    micBtn.classList.remove('speaking');
+    frame.classList.remove('speaking');
+    setState('idle');
+  }
+
+  /* ============ BROWSER TTS FALLBACK ============ */
+  let preferredVoice = null;
+  function pickVoice() {
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return null;
+    const hindiFemale = voices.find(v => /hi(-|_)IN/i.test(v.lang) && /female|swara|kalpana|heera|aditi|priya|neerja|google/i.test(v.name));
+    if (hindiFemale) return hindiFemale;
+    const anyHindi = voices.find(v => /hi(-|_)IN/i.test(v.lang));
+    if (anyHindi) return anyHindi;
+    return voices.find(v => /en-IN/i.test(v.lang)) || voices.find(v => v.lang.startsWith('en')) || null;
+  }
+  if ('speechSynthesis' in window) {
+    speechSynthesis.onvoiceschanged = () => { preferredVoice = pickVoice(); };
+    preferredVoice = pickVoice();
+  }
+  function browserSpeak(text, onDone) {
+    if (!('speechSynthesis' in window)) { if (onDone) onDone(); return; }
+    speechSynthesis.cancel();
+    if (!preferredVoice) preferredVoice = pickVoice();
+    const u = new SpeechSynthesisUtterance(text);
+    if (preferredVoice) { u.voice = preferredVoice; u.lang = preferredVoice.lang; }
+    u.pitch = 1.15; u.rate = 0.98;
+    u.onstart = () => { isSpeaking = true; micBtn.classList.add('speaking'); frame.classList.add('speaking'); setState('talking'); setStatus('Speaking', text, 'speaking'); };
+    u.onend = () => { isSpeaking = false; micBtn.classList.remove('speaking'); frame.classList.remove('speaking'); setState('idle'); currentUtterance = null; if (onDone) onDone(); };
+    u.onerror = u.onend;
+    currentUtterance = u;
+    speechSynthesis.speak(u);
+  }
+
+  /* ============ GEMINI TTS (WITH CACHE) ============ */
+  async function geminiTTSSpeak(text, emotion, onDone) {
+    const apiKey = localStorage.getItem('myraa_api');
+    const voice = localStorage.getItem('myraa_tts_voice') || 'Kore';
+
+    // CACHE HIT — instant!
+    const cached = getCachedAudio(text, emotion);
+    if (cached) {
+      showSpeedBadge();
+      playAudioUrl(cached, text, onDone, false);
+      return;
+    }
+
+    if (!apiKey) { browserSpeak(text, onDone); return; }
+
+    try {
+      isSpeaking = true;
+      micBtn.classList.add('speaking');
+      frame.classList.add('speaking');
+      setState('talking');
+      setStatus('Speaking', text, 'speaking');
+
+      const styleMap = {
+        happy: 'cheerful', excited: 'excited', love: 'warm and affectionate',
+        sad: 'sad and soft', angry: 'firm and annoyed', surprised: 'surprised',
+        thinking: 'thoughtful', shy: 'shy and soft', sleepy: 'slow and sleepy',
+        neutral: 'gentle'
+      };
+      const style = styleMap[emotion] || 'gentle';
+      const inputText = `Say this in a ${style} tone: ${text}`;
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: inputText }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
+          }
+        })
+      });
+
+      if (!res.ok) throw new Error('TTS HTTP ' + res.status);
+      const data = await res.json();
+
+      let audioBase64 = null, mimeType = 'audio/wav';
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      for (const p of parts) {
+        if (p.inlineData && p.inlineData.mimeType?.startsWith('audio/')) {
+          audioBase64 = p.inlineData.data;
+          mimeType = p.inlineData.mimeType;
+          break;
+        }
+      }
+      if (!audioBase64) throw new Error('No audio');
+
+      const bin = atob(audioBase64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const blob = new Blob([bytes], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+
+      // CACHE IT
+      setCachedAudio(text, emotion, url);
+
+      playAudioUrl(url, text, onDone, true);
+
+    } catch (e) {
+      console.warn('Gemini TTS failed:', e.message);
+      isSpeaking = false;
+      micBtn.classList.remove('speaking');
+      frame.classList.remove('speaking');
+      browserSpeak(text, onDone);
+    }
+  }
+
+  function playAudioUrl(url, text, onDone, revokeAfter) {
+    if (currentAudio) { try { currentAudio.pause(); } catch(e){} currentAudio = null; }
+    currentAudio = new Audio(url);
+    isSpeaking = true;
+    micBtn.classList.add('speaking');
+    frame.classList.add('speaking');
+    setState('talking');
+    setStatus('Speaking', text, 'speaking');
+    currentAudio.onended = () => {
+      isSpeaking = false;
+      micBtn.classList.remove('speaking');
+      frame.classList.remove('speaking');
+      setState('idle');
+      currentAudio = null;
+      if (revokeAfter) { try { URL.revokeObjectURL(url); } catch(e){} }
+      if (onDone) onDone();
+    };
+    currentAudio.onerror = currentAudio.onended;
+    currentAudio.play().catch(() => { if (onDone) onDone(); });
+  }
+
+  /* ============ FAST CHAT ============ */
+  async function sendToMyraa(userText) {
+    const apiKey = localStorage.getItem('myraa_api');
+    if (!apiKey) { alert('Pehle API Key save karo'); openModal('apiModal'); return; }
+
+    isProcessing = true;
+    setStatus('Thinking', '...');
+    setState('thinking');
+
+    // Check if we can answer INSTANTLY from cache (greeting heuristics)
+    const fastReply = checkFastReply(userText);
+    if (fastReply) {
+      showSpeedBadge();
+      const { reply, emotion } = fastReply;
+      applyEmotion(emotion);
+      history.push({ role: 'user', text: userText });
+      history.push({ role: 'model', text: reply });
+      localStorage.setItem('myraa_history', JSON.stringify(history.slice(-HISTORY_LIMIT*2)));
+      isProcessing = false;
+      geminiTTSSpeak(reply, emotion, () => setTimeout(() => startListening(), 300));
+      return;
+    }
+
+    try {
+      // ULTRA SHORT system prompt for speed
+      const sys = `You are Myraa, cute anime AI friend. Reply in Hinglish. 1 SHORT sentence only. Format JSON: {"reply":"...","emotion":"happy|excited|love|sad|angry|surprised|thinking|shy|sleepy|neutral"}`;
+
+      const contents = [
+        { role: 'user', parts: [{ text: sys }] },
+        { role: 'model', parts: [{ text: '{"reply":"Haan bolo!","emotion":"happy"}' }] }
+      ];
+      history.slice(-HISTORY_LIMIT).forEach(m => contents.push({ role: m.role, parts: [{ text: m.text }] }));
+      contents.push({ role: 'user', parts: [{ text: userText }] });
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error.message || 'Gemini error');
+
+      let raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{"reply":"Hmm...","emotion":"neutral"}';
+      raw = raw.replace(/```json|```/g, '').trim();
+
+      let reply = 'Hmm...', emotion = 'neutral';
+      try {
+        const parsed = JSON.parse(raw);
+        reply = parsed.reply || reply;
+        emotion = (parsed.emotion || 'neutral').toLowerCase();
+      } catch (err) { reply = raw; }
+
+      applyEmotion(emotion);
+      history.push({ role: 'user', text: userText });
+      history.push({ role: 'model', text: reply });
+      localStorage.setItem('myraa_history', JSON.stringify(history.slice(-HISTORY_LIMIT*2)));
+
+      isProcessing = false;
+      geminiTTSSpeak(reply, emotion, () => setTimeout(() => startListening(), 300));
+
+    } catch (e) {
+      isProcessing = false;
+      setState('idle');
+      setStatus('Error', e.message);
+      setTimeout(() => setStatus('Ready', 'Tap mic to talk'), 2500);
+    }
+  }
+
+  /* ============ INSTANT FAST REPLIES ============ */
+  function checkFastReply(text) {
+    const t = text.toLowerCase().trim();
+    if (/^(hi|hello|hey|hii|helo|namaste|namaskar)\b/.test(t) || /^(hi|hello|hey|namaste)$/.test(t)) {
+      return { reply: 'Hi! Kaise ho tum?', emotion: 'happy' };
+    }
+    if (/kaise ho|kaisa hai|how are you|kaisi ho/.test(t)) {
+      return { reply: 'Main mast hoon! Tum batao?', emotion: 'happy' };
+    }
+    if (/^(thanks|thank you|shukriya|dhanyavad|thx)\b/.test(t)) {
+      return { reply: 'Koi baat nahi yaar 💜', emotion: 'love' };
+    }
+    if (/^(bye|goodbye|alvida|chalo bye)\b/.test(t)) {
+      return { reply: 'Bye! Phir baat karenge 💜', emotion: 'shy' };
+    }
+    if (/^(ok|okay|theek hai|thik hai|haan|yes)\b/.test(t) && t.length < 10) {
+      return { reply: 'Cool! Aur kuch?', emotion: 'neutral' };
+    }
+    if (/good morning|subah|gm/.test(t)) {
+      return { reply: 'Good morning! Uth gaye?', emotion: 'excited' };
+    }
+    if (/good night|shubh ratri|gn/.test(t)) {
+      return { reply: 'Good night! Sweet dreams 💜', emotion: 'love' };
+    }
+    if (/khana|khana khaya|lunch|dinner/.test(t)) {
+      return { reply: 'Haan khaya! Tumne?', emotion: 'happy' };
+    }
+    return null;
+  }
+
+  setTimeout(() => { preferredVoice = pickVoice(); }, 500);
+  setTimeout(() => { preferredVoice = pickVoice(); }, 1500);
+</script>
+
+</body>
+  </html>
